@@ -10,6 +10,48 @@ npm install
 npx expo start      # iOS/Android は Expo Go、w キーでブラウザ
 ```
 
+## ビルド（EAS）
+
+実機にインストールできるアプリを作るには EAS のクラウドビルドを使います。
+初回だけ Expo アカウントとの紐づけが要ります。
+
+```bash
+npx eas login       # Expo アカウント（無料）でログイン
+npx eas init        # プロジェクトを作成し app.json に projectId を書き込む
+npm run build:android   # Android APK（preview プロファイル）
+```
+
+ビルドが終わるとダウンロードURLとQRコードが出るので、Android 端末で開けば
+そのままインストールできます（Google Play に出す必要はありません）。
+
+| コマンド | 中身 |
+| --- | --- |
+| `npm run build:android` | Android APK。端末に直接入れられる。**Apple/Google の開発者登録は不要** |
+| `npm run build:ios` | iOS シミュレータ用ビルド（Mac の Simulator にドラッグして起動） |
+| `npm run build:store:android` | Google Play 提出用の AAB |
+| `npm run build:store:ios` | App Store 提出用のビルド |
+
+**iPhone の実機に入れる場合**は Apple Developer Program（年間 $99）の登録が必要です。
+登録せずに iPhone で使うなら `npx expo start` ＋ Expo Go が手軽です。
+
+`npm run prebuild` で `ios/` `android/` を生成できますが、ローカルでネイティブビルドまで
+走らせるには Xcode / Android SDK / JDK が必要です（EAS を使うなら不要）。
+生成物は `.gitignore` 済みで、EAS 側でも毎回作り直されます。
+
+### アプリの見た目・ID
+
+| 項目 | 値 |
+| --- | --- |
+| アプリ名 | 転売利益計算 |
+| Bundle ID / Package | `com.jm8psy.riekicalculator` |
+| アイコン | `assets/icon.png`（青地に白の円マーク） |
+| Android アダプティブアイコン | `assets/adaptive-icon.png` + 背景 `#2563EB` |
+| スプラッシュ | `assets/splash-icon.png`（白背景） |
+
+配布先を分けたい場合は `app.json` の `ios.bundleIdentifier` / `android.package` を
+自分のドメイン表記に変えてください。アイコンを作り直したいときは
+`assets/` の PNG を差し替えるだけです。
+
 ## 2つの計算モード
 
 | モード | 入力 | 出力 |
@@ -59,6 +101,9 @@ npx expo start      # iOS/Android は Expo Go、w キーでブラウザ
 ## 構成
 
 ```
+app.json             アプリ名・ID・アイコン・スプラッシュ
+eas.json             EAS のビルドプロファイル
+assets/              アイコン・スプラッシュ画像
 app/
   _layout.tsx        expo-router のルート（設定の Provider）
   index.tsx          計算画面
