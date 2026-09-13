@@ -1,0 +1,170 @@
+import type { Platform } from './types';
+
+/**
+ * 手数料・送料のデフォルト値。
+ * ★ここの数字はあくまで「初期値」です。各社の改定は頻繁なので、
+ *   アプリの設定画面（または このファイル）で自分の実績値に直して使ってください。
+ */
+export const DEFAULTS_UPDATED_AT = '2025-06';
+
+/** フリマ系でよく使う小型便＋宅配便のセット */
+const mercariShipping = {
+  yupacket_post_mini: 160,
+  nekoposu: 210,
+  yupacket_post: 215,
+  yupacket: 230,
+  compact: 450,
+  yupacket_plus: 455,
+  size60: 750,
+  size80: 850,
+  size100: 1050,
+  size120: 1200,
+  size140: 1450,
+  size160: 1700,
+  size180: 2100,
+  size200: 2500,
+};
+
+const rakumaShipping = {
+  yupacket_post_mini: 160,
+  yupacket: 180,
+  nekoposu: 200,
+  yupacket_post: 215,
+  yupacket_plus: 455,
+  compact: 530,
+  size60: 700,
+  size80: 800,
+  size100: 1150,
+  size120: 1350,
+  size140: 1550,
+  size160: 1950,
+};
+
+const yahooShipping = {
+  yupacket_post_mini: 160,
+  yupacket: 180,
+  nekoposu: 210,
+  yupacket_post: 215,
+  compact: 380,
+  yupacket_plus: 455,
+  size60: 750,
+  size80: 850,
+  size100: 1050,
+  size120: 1200,
+  size140: 1450,
+  size160: 1700,
+};
+
+/** 一般的な宅配便（法人契約なしの目安）。EC・自己発送向け */
+const courierShipping = {
+  yupacket: 250,
+  compact: 610,
+  size60: 940,
+  size80: 1150,
+  size100: 1390,
+  size120: 1610,
+  size140: 1850,
+  size160: 2070,
+  size180: 2400,
+  size200: 2800,
+};
+
+export const DEFAULT_PLATFORMS: Platform[] = [
+  {
+    id: 'mercari',
+    name: 'メルカリ',
+    feeRate: 0.1,
+    feeFixed: 0,
+    feeRounding: 'floor',
+    payoutFee: 200,
+    minPrice: 300,
+    maxPrice: 9_999_999,
+    shipping: mercariShipping,
+    enabled: true,
+    note: '販売手数料10%／らくらく・ゆうゆうメルカリ便',
+  },
+  {
+    id: 'rakuma',
+    name: 'ラクマ',
+    feeRate: 0.045,
+    feeFixed: 0,
+    feeRounding: 'floor',
+    payoutFee: 210,
+    minPrice: 300,
+    shipping: rakumaShipping,
+    enabled: true,
+    note: '販売手数料4.5%／かんたんラクマパック',
+  },
+  {
+    id: 'yahoo_flea',
+    name: 'Yahoo!フリマ',
+    feeRate: 0.05,
+    feeFixed: 0,
+    feeRounding: 'floor',
+    payoutFee: 0,
+    minPrice: 300,
+    shipping: yahooShipping,
+    enabled: true,
+    note: '販売手数料5%／おてがる配送',
+  },
+  {
+    id: 'yahoo_auction',
+    name: 'ヤフオク!',
+    feeRate: 0.1,
+    feeFixed: 0,
+    feeRounding: 'floor',
+    payoutFee: 0,
+    minPrice: 1,
+    shipping: yahooShipping,
+    enabled: true,
+    note: '個人（プレミアム会員以外）の落札システム利用料10%',
+  },
+  {
+    id: 'amazon',
+    name: 'Amazon',
+    feeRate: 0.15,
+    feeFixed: 0,
+    feeRounding: 'round',
+    payoutFee: 0,
+    minPrice: 1,
+    shipping: courierShipping,
+    enabled: true,
+    note: 'カテゴリにより8〜15%。小口出品は別途1件100円',
+  },
+  {
+    id: 'base',
+    name: 'BASE / 自社EC',
+    feeRate: 0.066,
+    feeFixed: 40,
+    feeRounding: 'round',
+    payoutFee: 250,
+    minPrice: 1,
+    shipping: courierShipping,
+    enabled: false,
+    note: 'スタンダードプラン 6.6% + 40円',
+  },
+  {
+    id: 'custom1',
+    name: 'カスタム①',
+    feeRate: 0,
+    feeFixed: 0,
+    feeRounding: 'floor',
+    payoutFee: 0,
+    minPrice: 1,
+    shipping: courierShipping,
+    enabled: false,
+    note: '設定画面で自由に手数料・送料を設定',
+  },
+  {
+    id: 'custom2',
+    name: 'カスタム②',
+    feeRate: 0,
+    feeFixed: 0,
+    feeRounding: 'floor',
+    payoutFee: 0,
+    minPrice: 1,
+    shipping: courierShipping,
+    enabled: false,
+    note: '設定画面で自由に手数料・送料を設定',
+  },
+];

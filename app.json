@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "転売利益計算",
+    "slug": "rieki-calculator",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "riekicalc",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar"
+    ]
+  }
+}
