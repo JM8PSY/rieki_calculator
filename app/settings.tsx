@@ -2,14 +2,18 @@ import React, { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, NumberField, Row } from '../src/components/ui';
+import { yen } from '../src/domain/format';
+import { STORE_LABEL, STORE_ORDER } from '../src/domain/materials';
 import { DEFAULTS_UPDATED_AT } from '../src/domain/platforms';
 import { METHOD_BY_ID, SHIPPING_METHODS } from '../src/domain/shipping';
 import { useSettings } from '../src/store/SettingsContext';
 import { colors, radius, spacing } from '../src/theme';
 
 export default function SettingsScreen() {
-  const { platforms, updatePlatform, updateShippingFare, resetAll } = useSettings();
+  const { platforms, materials, updatePlatform, updateShippingFare, updateMaterial, resetAll } =
+    useSettings();
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [materialsOpen, setMaterialsOpen] = useState(false);
 
   const confirmReset = () => {
     Alert.alert('初期値に戻す', '手数料・送料の編集内容をすべて破棄します。よろしいですか？', [
@@ -88,7 +92,7 @@ export default function SettingsScreen() {
                         <Text style={styles.fareName}>{m.name}</Text>
                         <Text style={styles.fareNote}>
                           {m.carrier}
-                          {m.materialCost ? ` ／ 資材 ${m.materialCost}円` : ''}
+                          {m.note ? ` ／ ${m.note}` : ''}
                         </Text>
                       </View>
                       <View style={styles.fareInput}>
@@ -119,6 +123,50 @@ export default function SettingsScreen() {
             </Card>
           );
         })}
+
+        {/* ── 梱包資材の価格 ─────────────────────────── */}
+        <Card>
+          <Pressable onPress={() => setMaterialsOpen((v) => !v)}>
+            <Text style={styles.name}>梱包資材の価格</Text>
+            <Text style={styles.sub}>
+              郵便局・クロネコヤマト直営店で買う資材の単価（店頭価格に合わせて調整できます）
+            </Text>
+            <Text style={styles.toggle}>{materialsOpen ? '閉じる' : '編集する'}</Text>
+          </Pressable>
+
+          {materialsOpen && (
+            <View style={styles.detail}>
+              {STORE_ORDER.map((store) => {
+                const items = materials.filter((m) => m.store === store);
+                if (items.length === 0) return null;
+                return (
+                  <View key={store}>
+                    <Text style={styles.sectionLabel}>{STORE_LABEL[store]}</Text>
+                    {items.map((m) => (
+                      <View key={m.id} style={styles.fareRow}>
+                        <View style={styles.fareLabel}>
+                          <Text style={styles.fareName}>{m.name}</Text>
+                          <Text style={styles.fareNote}>
+                            {m.dedicatedTo
+                              ? `${METHOD_BY_ID[m.dedicatedTo]?.name ?? m.dedicatedTo}専用（送料に自動加算）`
+                              : (m.note ?? `現在 ${yen(m.price)}`)}
+                          </Text>
+                        </View>
+                        <View style={styles.fareInput}>
+                          <NumberField
+                            value={m.price}
+                            onChange={(price) => updateMaterial(m.id, { price })}
+                            suffix="円"
+                          />
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </Card>
 
         <Pressable style={styles.reset} onPress={confirmReset}>
           <Text style={styles.resetText}>すべて初期値に戻す</Text>

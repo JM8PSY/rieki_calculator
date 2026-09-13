@@ -1,10 +1,21 @@
+import { dedicatedMapOf, materialsTotal } from './materials';
 import { cheapestShipping, METHOD_BY_ID, shippingOptionsFor, type ShippingOption } from './shipping';
-import type { Breakdown, CostInput, Dimensions, Options, Platform, Rounding } from './types';
+import type {
+  Breakdown,
+  CostInput,
+  Dimensions,
+  Options,
+  PackagingMaterial,
+  Platform,
+  Rounding,
+} from './types';
 
 export type CalcContext = {
   costs: CostInput;
   dims: Dimensions;
   options: Options;
+  /** 資材カタログ（設定画面で編集された価格を反映したもの） */
+  materials: PackagingMaterial[];
   /** プラットフォームID -> 発送方法ID（手動で発送方法を選んだ場合） */
   methodOverrides?: Record<string, string>;
 };
@@ -21,63 +32,97 @@ export function roundUpTo(value: number, step: number): number {
 }
 
 type ResolvedShipping = {
+  /** 送料 + 専用資材費 */
   amount: number;
+  /** 専用資材の金額（内訳表示用） */
+  materialCost: number;
+  materialName?: string;
   label: string;
   ok: boolean;
   reason?: string;
 };
 
-/** そのプラットフォームで実際に負担する送料を決める */
+/** そのプラットフォームで実際に負担する送料（専用資材込み）を決める */
 export function resolveShipping(platform: Platform, ctx: CalcContext): ResolvedShipping {
   const { options } = ctx;
   if (options.shippingMode === 'buyer') {
-    return { amount: 0, label: '送料は購入者負担', ok: true };
+    return { amount: 0, materialCost: 0, label: '送料は購入者負担', ok: true };
   }
   if (options.shippingMode === 'manual') {
-    return { amount: options.manualShipping, label: '送料を手入力', ok: true };
+    return { amount: options.manualShipping, materialCost: 0, label: '送料を手入力', ok: true };
   }
+
+  const dedicated = dedicatedMapOf(ctx.materials);
 
   const overrideId = ctx.methodOverrides?.[platform.id];
   if (overrideId) {
     const fare = platform.shipping[overrideId];
     const method = METHOD_BY_ID[overrideId];
     if (fare != null && method) {
-      const total = fare + (method.materialCost ?? 0);
-      return { amount: total, label: labelFor({ method, fare, total }), ok: true };
+      const material = dedicated[overrideId];
+      const option: ShippingOption = {
+        method,
+        fare,
+        material,
+        total: fare + (material?.price ?? 0),
+      };
+      return {
+        amount: option.total,
+        materialCost: material?.price ?? 0,
+        materialName: material?.name,
+        label: labelFor(option),
+        ok: true,
+      };
     }
   }
 
-  const best = cheapestShipping(platform.shipping, ctx.dims);
+  const best = cheapestShipping(platform.shipping, ctx.dims, dedicated);
   if (!best) {
     return {
       amount: 0,
+      materialCost: 0,
       label: '発送方法なし',
       ok: false,
       reason: 'このサイズ・重さで使える発送方法がありません',
     };
   }
-  return { amount: best.total, label: labelFor(best), ok: true };
+  return {
+    amount: best.total,
+    materialCost: best.material?.price ?? 0,
+    materialName: best.material?.name,
+    label: labelFor(best),
+    ok: true,
+  };
 }
 
 export function labelFor(option: ShippingOption): string {
-  const material = option.method.materialCost ?? 0;
-  const suffix = material > 0 ? `（${option.fare}円 + 資材${material}円）` : '';
-  return `${option.method.name} ${option.total}円${suffix}`;
+  if (!option.material) return `${option.method.name} ${option.fare}円`;
+  return `${option.method.name} ${option.total}円（送料${option.fare}円 + ${option.material.name}${option.material.price}円）`;
 }
 
 /** そのプラットフォームで選べる発送方法の一覧（安い順） */
-export function availableShipping(platform: Platform, dims: Dimensions): ShippingOption[] {
-  return shippingOptionsFor(platform.shipping, dims);
+export function availableShipping(
+  platform: Platform,
+  dims: Dimensions,
+  materials: PackagingMaterial[],
+): ShippingOption[] {
+  return shippingOptionsFor(platform.shipping, dims, dedicatedMapOf(materials));
 }
 
 export function feeFor(platform: Platform, price: number): number {
   return applyRounding(price * platform.feeRate, platform.feeRounding) + platform.feeFixed;
 }
 
+/** 仕入れ + 選んだ梱包資材 + その他経費（送料と専用資材はここに含めない） */
+export function fixedCostOf(ctx: CalcContext): { total: number; materials: number } {
+  const materials = materialsTotal(ctx.materials, ctx.costs.materials);
+  return { total: ctx.costs.purchase + materials + ctx.costs.other, materials };
+}
+
 /** 販売価格 → 利益 */
 export function calcProfit(platform: Platform, price: number, ctx: CalcContext): Breakdown {
   const ship = resolveShipping(platform, ctx);
-  const cost = ctx.costs.purchase + ctx.costs.packaging + ctx.costs.other;
+  const { total: cost, materials: materialsCost } = fixedCostOf(ctx);
   const payoutFee = ctx.options.includePayoutFee ? platform.payoutFee : 0;
   const fee = feeFor(platform, price);
   const profit = price - fee - ship.amount - cost - payoutFee;
@@ -99,6 +144,9 @@ export function calcProfit(platform: Platform, price: number, ctx: CalcContext):
     fee,
     shipping: ship.amount,
     shippingLabel: ship.label,
+    dedicatedMaterialCost: ship.materialCost,
+    dedicatedMaterialName: ship.materialName,
+    materialsCost,
     cost,
     payoutFee,
     profit,
@@ -124,7 +172,7 @@ export function calcPriceForTarget(
     return { ...b, ok: false, reason: '手数料率が100%以上です' };
   }
 
-  const cost = ctx.costs.purchase + ctx.costs.packaging + ctx.costs.other;
+  const { total: cost } = fixedCostOf(ctx);
   const payoutFee = ctx.options.includePayoutFee ? platform.payoutFee : 0;
   const base = targetProfit + cost + ship.amount + payoutFee + platform.feeFixed;
 
@@ -173,3 +221,5 @@ export function calcAll(
 export function breakEvenPrice(platform: Platform, ctx: CalcContext): number {
   return calcPriceForTarget(platform, 0, ctx).price;
 }
+
+export type { CostInput };

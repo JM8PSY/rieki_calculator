@@ -11,10 +11,12 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialPicker } from '../src/components/MaterialPicker';
 import { ResultCard } from '../src/components/ResultCard';
 import { Card, Chip, NumberField, Row, Segmented } from '../src/components/ui';
 import { availableShipping, calcAll, calcPriceForTarget } from '../src/domain/calc';
 import { percent, yen } from '../src/domain/format';
+import { materialsTotal, selectedMaterialLines } from '../src/domain/materials';
 import { SIZE_PRESETS } from '../src/domain/shipping';
 import type { CostInput, Dimensions, ShippingMode } from '../src/domain/types';
 import { useSettings } from '../src/store/SettingsContext';
@@ -23,9 +25,13 @@ import { colors, radius, spacing } from '../src/theme';
 const TARGET_PRESETS = [100, 300, 500, 1000, 3000, 5000];
 
 export default function CalculatorScreen() {
-  const { platforms, options, setOptions } = useSettings();
+  const { platforms, options, materials, setOptions } = useSettings();
 
-  const [costs, setCosts] = useState<CostInput>({ purchase: 1000, packaging: 30, other: 0 });
+  const [costs, setCosts] = useState<CostInput>({
+    purchase: 1000,
+    materials: { jp_cushion_env: 1, ot_opp: 1 },
+    other: 0,
+  });
   const [dims, setDims] = useState<Dimensions>({ length: 25, width: 18, height: 2, weight: 200 });
   const [mode, setMode] = useState<'price' | 'target'>('target');
   const [price, setPrice] = useState(2000);
@@ -33,7 +39,19 @@ export default function CalculatorScreen() {
   const [methodOverrides, setMethodOverrides] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  const ctx = useMemo(() => ({ costs, dims, options, methodOverrides }), [costs, dims, options, methodOverrides]);
+  const ctx = useMemo(
+    () => ({ costs, dims, options, materials, methodOverrides }),
+    [costs, dims, options, materials, methodOverrides],
+  );
+
+  const materialLines = useMemo(
+    () => selectedMaterialLines(materials, costs.materials),
+    [materials, costs.materials],
+  );
+  const materialsCost = useMemo(
+    () => materialsTotal(materials, costs.materials),
+    [materials, costs.materials],
+  );
 
   const rows = useMemo(
     () => calcAll(platforms, ctx, mode === 'price' ? { mode: 'price', value: price } : { mode: 'target', value: target }),
@@ -72,17 +90,11 @@ export default function CalculatorScreen() {
               </Link>
             }
           >
-            <NumberField
-              label="元値（仕入れ値）"
-              value={costs.purchase}
-              onChange={(purchase) => setCost({ purchase })}
-              suffix="円"
-            />
             <Row>
               <NumberField
-                label="梱包資材費"
-                value={costs.packaging}
-                onChange={(packaging) => setCost({ packaging })}
+                label="元値（仕入れ値）"
+                value={costs.purchase}
+                onChange={(purchase) => setCost({ purchase })}
                 suffix="円"
                 flex={1}
               />
@@ -94,6 +106,32 @@ export default function CalculatorScreen() {
                 flex={1}
               />
             </Row>
+          </Card>
+
+          {/* ── 梱包資材 ─────────────────────────────── */}
+          <Card
+            title="梱包資材"
+            right={<Text style={styles.total}>{yen(materialsCost)}</Text>}
+          >
+            <MaterialPicker
+              materials={materials}
+              selected={costs.materials}
+              onChange={(next) => setCost({ materials: next })}
+              dims={dims}
+            />
+            {materialLines.length > 0 && (
+              <View style={styles.materialSummary}>
+                {materialLines.map((line) => (
+                  <Text key={line.material.id} style={styles.materialLine}>
+                    {line.material.name} × {line.qty} = {yen(line.subtotal)}
+                  </Text>
+                ))}
+              </View>
+            )}
+            <Text style={styles.hint}>
+              専用BOX・専用シールが要る発送方法（宅急便コンパクト等）は、選んだ時点で自動的に
+              送料へ上乗せされます。ここで重ねて選ぶ必要はありません。
+            </Text>
           </Card>
 
           {/* ── サイズ・送料 ───────────────────────────── */}
@@ -241,7 +279,7 @@ export default function CalculatorScreen() {
                 onToggle={() =>
                   setExpanded((prev) => ({ ...prev, [r.platform.id]: !prev[r.platform.id] }))
                 }
-                shippingOptions={availableShipping(r.platform, dims)}
+                shippingOptions={availableShipping(r.platform, dims, materials)}
                 selectedMethodId={methodOverrides[r.platform.id]}
                 onSelectMethod={(methodId) =>
                   setMethodOverrides((prev) => {
@@ -283,6 +321,14 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: spacing.lg, paddingBottom: spacing.xl * 2 },
   link: { color: colors.accent, fontSize: 13, fontWeight: '600' },
+  total: { fontSize: 15, fontWeight: '800', color: colors.accent },
+  materialSummary: {
+    marginTop: spacing.md,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  materialLine: { fontSize: 12, color: colors.sub, lineHeight: 19 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   hint: { fontSize: 12, color: colors.sub, marginTop: spacing.sm, lineHeight: 18 },
   switchRow: {

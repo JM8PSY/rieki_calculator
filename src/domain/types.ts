@@ -18,8 +18,26 @@ export type ShippingMethod = {
   name: string;
   carrier: string;
   limit: SizeLimit;
-  /** 専用箱・専用シールなどの追加費用（円） */
-  materialCost?: number;
+  note?: string;
+};
+
+/** 梱包資材の購入先 */
+export type MaterialStore = 'japanpost' | 'yamato' | 'other';
+
+export type PackagingMaterial = {
+  id: string;
+  name: string;
+  /** どこで買えるか（郵便局 / ヤマト直営店 / その他） */
+  store: MaterialStore;
+  /** 単価（円） */
+  price: number;
+  /**
+   * この発送方法の専用資材（専用BOX・専用シールなど）。
+   * 指定すると、その発送方法を使うときだけ自動で送料に上乗せされる。
+   */
+  dedicatedTo?: string;
+  /** この資材に収まるサイズの目安（「おすすめ」表示に使う） */
+  limit?: SizeLimit;
   note?: string;
 };
 
@@ -58,8 +76,8 @@ export type Dimensions = {
 export type CostInput = {
   /** 仕入れ値（元値） */
   purchase: number;
-  /** 梱包資材費 */
-  packaging: number;
+  /** 選んだ梱包資材：資材ID -> 個数 */
+  materials: Record<string, number>;
   /** その他経費（交通費・手数料など） */
   other: number;
 };
@@ -90,11 +108,17 @@ export type Breakdown = {
   price: number;
   /** 販売手数料 */
   fee: number;
-  /** 送料（出品者負担ぶん） */
+  /** 送料（出品者負担ぶん。専用資材があればその分を含む） */
   shipping: number;
   /** 採用した発送方法の表示名 */
   shippingLabel: string;
-  /** 仕入れ + 梱包 + その他 */
+  /** 送料に含まれる専用資材の金額（専用BOX・専用シールなど） */
+  dedicatedMaterialCost: number;
+  /** 専用資材の名前（なければ undefined） */
+  dedicatedMaterialName?: string;
+  /** 手動で選んだ梱包資材の合計 */
+  materialsCost: number;
+  /** 仕入れ + 梱包資材 + その他 */
   cost: number;
   /** 振込手数料（含めない設定なら 0） */
   payoutFee: number;

@@ -1,4 +1,4 @@
-import type { Dimensions, ShippingMethod, SizeLimit } from './types';
+import type { Dimensions, PackagingMaterial, ShippingMethod, SizeLimit } from './types';
 
 /**
  * 発送方法カタログ（サイズ制限のみを定義。送料は platform ごとに持たせる）
@@ -24,32 +24,28 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
     name: 'ゆうパケットポストmini',
     carrier: '日本郵便',
     limit: { maxLongest: 21.6, maxThickness: 3, maxWeight: 2000 },
-    materialCost: 20,
-    note: '専用封筒 20円が別途必要',
+    note: '郵便局で買う専用封筒が別途必要',
   },
   {
     id: 'yupacket_post',
     name: 'ゆうパケットポスト',
     carrier: '日本郵便',
     limit: { maxSum3: 60, maxLongest: 34, maxThickness: 3, maxWeight: 2000 },
-    materialCost: 20,
-    note: '専用シール 20円が別途必要',
+    note: '郵便局で買う発送用シールが別途必要',
   },
   {
     id: 'compact',
     name: '宅急便コンパクト',
     carrier: 'ヤマト運輸',
     limit: { maxLongest: 25, maxSum3: 45, maxThickness: 5, maxWeight: 5000 },
-    materialCost: 70,
-    note: '専用BOX 70円が別途必要',
+    note: 'ヤマト直営店で買う専用BOXが別途必要',
   },
   {
     id: 'yupacket_plus',
     name: 'ゆうパケットプラス',
     carrier: '日本郵便',
     limit: { maxLongest: 24, maxSum3: 46, maxThickness: 7, maxWeight: 2000 },
-    materialCost: 65,
-    note: '専用BOX 65円が別途必要',
+    note: '郵便局で買う専用箱が別途必要',
   },
   { id: 'size60', name: '60サイズ', carrier: '宅配便', limit: { maxSum3: 60, maxWeight: 2000 } },
   { id: 'size80', name: '80サイズ', carrier: '宅配便', limit: { maxSum3: 80, maxWeight: 5000 } },
@@ -100,21 +96,28 @@ export type ShippingOption = {
   method: ShippingMethod;
   /** 送料 */
   fare: number;
-  /** 送料 + 資材費 */
+  /** この発送方法に必須の専用資材（専用BOX・専用シールなど） */
+  material?: PackagingMaterial;
+  /** 送料 + 専用資材費 */
   total: number;
 };
 
-/** そのプラットフォームで使える発送方法を、安い順に返す */
+/**
+ * そのプラットフォームで使える発送方法を、安い順に返す。
+ * dedicated は「発送方法ID -> 専用資材」（materials.ts の dedicatedMapOf で作る）。
+ */
 export function shippingOptionsFor(
   shipping: Record<string, number>,
   d: Dimensions,
+  dedicated: Record<string, PackagingMaterial> = {},
 ): ShippingOption[] {
   const options: ShippingOption[] = [];
   for (const [id, fare] of Object.entries(shipping)) {
     const method = METHOD_BY_ID[id];
     if (!method) continue;
     if (!fitsLimit(method.limit, d)) continue;
-    options.push({ method, fare, total: fare + (method.materialCost ?? 0) });
+    const material = dedicated[id];
+    options.push({ method, fare, material, total: fare + (material?.price ?? 0) });
   }
   return options.sort((a, b) => a.total - b.total);
 }
@@ -123,6 +126,7 @@ export function shippingOptionsFor(
 export function cheapestShipping(
   shipping: Record<string, number>,
   d: Dimensions,
+  dedicated: Record<string, PackagingMaterial> = {},
 ): ShippingOption | null {
-  return shippingOptionsFor(shipping, d)[0] ?? null;
+  return shippingOptionsFor(shipping, d, dedicated)[0] ?? null;
 }

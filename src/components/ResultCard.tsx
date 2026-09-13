@@ -72,7 +72,15 @@ export function ResultCard({
             tone="sub"
           />
           <KeyValue label={`送料：${b.shippingLabel}`} value={`- ${yen(b.shipping)}`} tone="sub" />
-          <KeyValue label="仕入れ・経費" value={`- ${yen(b.cost)}`} tone="sub" />
+          {b.dedicatedMaterialCost > 0 && (
+            <Text style={styles.subNote}>
+              ※ 送料には {b.dedicatedMaterialName}（{yen(b.dedicatedMaterialCost)}）を含みます
+            </Text>
+          )}
+          {b.materialsCost > 0 && (
+            <KeyValue label="梱包資材" value={`- ${yen(b.materialsCost)}`} tone="sub" />
+          )}
+          <KeyValue label="仕入れ・その他経費" value={`- ${yen(b.cost - b.materialsCost)}`} tone="sub" />
           {b.payoutFee > 0 && (
             <KeyValue label="振込手数料" value={`- ${yen(b.payoutFee)}`} tone="sub" />
           )}
@@ -134,6 +142,7 @@ const styles = StyleSheet.create({
   headline: { fontSize: 24, fontWeight: '800', fontVariant: ['tabular-nums'] },
   ng: { fontSize: 20, color: colors.sub },
   detail: { marginTop: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: spacing.md },
+  subNote: { fontSize: 11, color: colors.sub, marginTop: 2, marginBottom: 2, lineHeight: 16 },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: spacing.sm },
   picker: { marginTop: spacing.md },
   pickerLabel: { fontSize: 12, color: colors.sub, marginBottom: spacing.sm },
