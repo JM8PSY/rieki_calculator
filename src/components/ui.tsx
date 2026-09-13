@@ -81,6 +81,64 @@ export function NumberField({
   );
 }
 
+export function TextField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  flex,
+}: {
+  label?: string;
+  value: string;
+  onChange: (t: string) => void;
+  placeholder?: string;
+  flex?: number;
+}) {
+  return (
+    <View style={[styles.field, flex != null && { flex }]}>
+      {label ? <Text style={styles.fieldLabel}>{label}</Text> : null}
+      <View style={styles.inputRow}>
+        <TextInput
+          style={styles.input}
+          value={value}
+          onChangeText={onChange}
+          placeholder={placeholder}
+          placeholderTextColor={colors.sub}
+        />
+      </View>
+    </View>
+  );
+}
+
+export function Button({
+  label,
+  onPress,
+  disabled,
+  tone = 'primary',
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  tone?: 'primary' | 'ghost';
+}) {
+  const primary = tone === 'primary';
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={[
+        styles.button,
+        primary ? styles.buttonPrimary : styles.buttonGhost,
+        disabled && styles.buttonDisabled,
+      ]}
+    >
+      <Text style={[styles.buttonText, primary ? styles.buttonTextPrimary : styles.buttonTextGhost]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 export function Segmented<T extends string | number>({
   options,
   value,
@@ -204,6 +262,22 @@ const styles = StyleSheet.create({
   segmentActive: { backgroundColor: colors.card, shadowOpacity: 0.06, shadowRadius: 3, elevation: 1 },
   segmentText: { fontSize: 13, color: colors.sub, fontWeight: '600' },
   segmentTextActive: { color: colors.accent },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.md,
+    alignItems: 'center',
+  },
+  buttonPrimary: { backgroundColor: colors.accent },
+  buttonGhost: {
+    backgroundColor: 'transparent',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  buttonDisabled: { opacity: 0.4 },
+  buttonText: { fontSize: 14, fontWeight: '700' },
+  buttonTextPrimary: { color: '#fff' },
+  buttonTextGhost: { color: colors.sub },
   chip: {
     paddingHorizontal: spacing.md,
     paddingVertical: 7,

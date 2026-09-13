@@ -119,10 +119,15 @@ export const DEFAULT_MATERIALS: PackagingMaterial[] = [
   },
 
   // ── その他 ─────────────────────────────────────────
-  { id: 'ot_bubble', name: 'プチプチ・緩衝材（1回分）', store: 'other', price: 20 },
-  { id: 'ot_opp', name: 'OPP袋・水濡れ防止（1枚）', store: 'other', price: 5 },
+  // 緩衝材・OPP袋などは人によって使う/使わないが分かれるので初期値には入れていない。
+  // 必要なら設定画面の「資材を追加」から自分の実勢価格で登録できる（端末に保存される）。
   { id: 'ot_own_env', name: '自前の封筒・紙袋', store: 'other', price: 0 },
 ];
+
+/** ユーザー追加ぶんのID（衝突しないように接頭辞をつける） */
+export function newMaterialId(): string {
+  return `custom_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+}
 
 /** 資材ID -> 単価 の早見表 */
 export function priceMapOf(materials: PackagingMaterial[]): Record<string, number> {
@@ -138,9 +143,9 @@ export function dedicatedMapOf(
   return map;
 }
 
-/** 手動で選べる資材（専用資材は自動加算されるので除く） */
+/** 手動で選べる資材（専用資材は自動加算されるので除く／非表示にしたものも除く） */
 export function selectableMaterials(materials: PackagingMaterial[]): PackagingMaterial[] {
-  return materials.filter((m) => !m.dedicatedTo);
+  return materials.filter((m) => !m.dedicatedTo && !m.hidden);
 }
 
 /** 選んだ資材の合計金額 */
@@ -148,7 +153,8 @@ export function materialsTotal(
   materials: PackagingMaterial[],
   selected: Record<string, number>,
 ): number {
-  const prices = priceMapOf(materials);
+  // 非表示にした資材は金額にも入れない（隠れた経費が残らないように）
+  const prices = priceMapOf(materials.filter((m) => !m.hidden));
   let total = 0;
   for (const [id, qty] of Object.entries(selected)) {
     if (!qty) continue;
@@ -163,6 +169,6 @@ export function selectedMaterialLines(
   selected: Record<string, number>,
 ): { material: PackagingMaterial; qty: number; subtotal: number }[] {
   return materials
-    .filter((m) => (selected[m.id] ?? 0) > 0)
+    .filter((m) => !m.hidden && (selected[m.id] ?? 0) > 0)
     .map((m) => ({ material: m, qty: selected[m.id], subtotal: m.price * selected[m.id] }));
 }

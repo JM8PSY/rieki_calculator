@@ -29,7 +29,7 @@ export default function CalculatorScreen() {
 
   const [costs, setCosts] = useState<CostInput>({
     purchase: 1000,
-    materials: { jp_cushion_env: 1, ot_opp: 1 },
+    materials: { jp_cushion_env: 1 },
     other: 0,
   });
   const [dims, setDims] = useState<Dimensions>({ length: 25, width: 18, height: 2, weight: 200 });

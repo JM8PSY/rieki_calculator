@@ -38,6 +38,10 @@ export type PackagingMaterial = {
   dedicatedTo?: string;
   /** この資材に収まるサイズの目安（「おすすめ」表示に使う） */
   limit?: SizeLimit;
+  /** 使わない資材（リストにも出さず、金額にも入れない） */
+  hidden?: boolean;
+  /** ユーザーが自分で追加した資材（削除できる） */
+  custom?: boolean;
   note?: string;
 };
 

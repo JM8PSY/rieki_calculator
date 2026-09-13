@@ -47,8 +47,8 @@ function mergeMaterials(saved: PackagingMaterial[] | undefined): PackagingMateri
   const merged = DEFAULT_MATERIALS.map((def) => {
     const s = savedById.get(def.id);
     savedById.delete(def.id);
-    // 価格はユーザーの編集を優先し、名前や制限などはデフォルト側の更新を取り込む
-    return s ? { ...def, price: s.price, name: s.name ?? def.name } : def;
+    // 価格・名前・表示ON/OFFはユーザーの編集を優先し、サイズ制限などはデフォルト側の更新を取り込む
+    return s ? { ...def, price: s.price, name: s.name ?? def.name, hidden: s.hidden } : def;
   });
   return [...merged, ...savedById.values()];
 }
