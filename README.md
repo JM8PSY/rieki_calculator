@@ -10,6 +10,22 @@ npm install
 npx expo start      # iOS/Android は Expo Go、w キーでブラウザ
 ```
 
+表示されたQRコードを、iPhone は カメラ、Android は Expo Go アプリの
+「Scan QR code」で読み取ります。ターミナルに `› Using Expo Go` と
+`exp://…` が出ていれば Expo Go 向けに動いています。
+
+### Expo Go で開けないとき
+
+| 症状 | 対処 |
+| --- | --- |
+| QRが `riekicalc://…` になっている | 開発ビルド用モードになっています。`npx expo start --go` で起動してください |
+| 「SDKのバージョンが合わない」と出る | このプロジェクトは **SDK 57** です。ストアで Expo Go を最新に更新してください |
+| QRを読んでも繋がらない・読み込みが止まる | PCとスマホが同じWi-Fiにいるか確認。社内ネットワーク等で弾かれる場合は `npx expo start --tunnel` |
+| 古い画面が出る／挙動がおかしい | `npx expo start -c` でキャッシュを消して起動 |
+
+このアプリはネイティブコードを含まず、依存ライブラリはすべて Expo Go に同梱済みの
+ものだけなので、**Expo Go で全機能がそのまま動きます**（ビルド不要）。
+
 ## ビルド（EAS）
 
 実機にインストールできるアプリを作るには EAS のクラウドビルドを使います。
@@ -33,6 +49,11 @@ npm run build:android   # Android APK（preview プロファイル）
 
 **iPhone の実機に入れる場合**は Apple Developer Program（年間 $99）の登録が必要です。
 登録せずに iPhone で使うなら `npx expo start` ＋ Expo Go が手軽です。
+
+カスタム開発ビルド（`developmentClient: true`）を使いたくなったら
+`npx expo install expo-dev-client` を入れて `eas.json` に development プロファイルを
+足してください。**入れると `expo start` の既定が開発ビルド向けに変わる**ので、
+Expo Go を使う日は `npx expo start --go` を明示します。
 
 `npm run prebuild` で `ios/` `android/` を生成できますが、ローカルでネイティブビルドまで
 走らせるには Xcode / Android SDK / JDK が必要です（EAS を使うなら不要）。
