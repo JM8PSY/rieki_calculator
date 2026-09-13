@@ -28,7 +28,7 @@ export default function MaterialsStep() {
       step={3}
       title="発送資材は何を使う？"
       subtitle="封筒やダンボールなど、この商品を送るのに買う資材を選んでください。宅急便コンパクトなどの専用BOXは、発送方法を選んだ時点で自動的に加算されるのでここでは不要です。サイズは次の画面で入力します。"
-      onNext={() => router.push('/shipping')}
+      onNext={() => router.push('/platform')}
       nextLabel={lines.length === 0 ? '資材なしで進む' : '次へ'}
       summary={
         <View>

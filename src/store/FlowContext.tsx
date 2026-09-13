@@ -4,9 +4,14 @@ import type { CostInput, Dimensions } from '../domain/types';
 
 const STORAGE_KEY = 'rieki-calculator/flow/v1';
 
+/** 'all' なら全販路を比較、それ以外はそのプラットフォームIDに絞る */
+export type PlatformSelection = string;
+
 export type FlowState = {
   costs: CostInput;
   dims: Dimensions;
+  /** 売る販路。'all' で全社比較 */
+  platformId: PlatformSelection;
   /** 目標利益から価格を出すか、価格から利益を出すか */
   mode: 'target' | 'price';
   target: number;
@@ -18,6 +23,7 @@ export type FlowState = {
 export const INITIAL_FLOW: FlowState = {
   costs: { purchase: 0, materials: {}, other: 0 },
   dims: { length: 25, width: 18, height: 2, weight: 200 },
+  platformId: 'all',
   mode: 'target',
   target: 500,
   price: 2000,

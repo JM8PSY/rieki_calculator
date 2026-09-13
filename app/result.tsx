@@ -17,7 +17,8 @@ const TARGET_PRESETS = [100, 300, 500, 1000, 3000, 5000];
 export default function ResultScreen() {
   const router = useRouter();
   const { platforms, options, materials } = useSettings();
-  const { costs, dims, mode, target, price, methodOverrides, setFlow, startOver } = useFlow();
+  const { costs, dims, mode, target, price, platformId, methodOverrides, setFlow, startOver } =
+    useFlow();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const ctx = useMemo(
@@ -25,14 +26,21 @@ export default function ResultScreen() {
     [costs, dims, options, materials, methodOverrides],
   );
 
+  // 販路を1つに決めている場合はそれだけを計算する
+  const targetPlatforms = useMemo(
+    () => (platformId === 'all' ? platforms : platforms.filter((p) => p.id === platformId)),
+    [platforms, platformId],
+  );
+  const single = platformId !== 'all';
+
   const rows = useMemo(
     () =>
       calcAll(
-        platforms,
+        targetPlatforms,
         ctx,
         mode === 'price' ? { mode: 'price', value: price } : { mode: 'target', value: target },
       ),
-    [platforms, ctx, mode, price, target],
+    [targetPlatforms, ctx, mode, price, target],
   );
 
   const best = rows.find((r) => r.ok);
@@ -61,6 +69,11 @@ export default function ResultScreen() {
             onPress={() => router.dismissTo('/materials')}
           />
           <RecapItem
+            label="販路"
+            value={single ? (rows[0]?.platform.name ?? '—') : '全社比較'}
+            onPress={() => router.dismissTo('/platform')}
+          />
+          <RecapItem
             label="送料"
             value={
               options.shippingMode === 'auto'
@@ -84,6 +97,13 @@ export default function ResultScreen() {
                   <Text style={styles.verdictStrong}>{yen(best.price)}</Text> で売れば{' '}
                   <Text style={styles.verdictStrong}>{yen(target)}</Text> の利益が出ます
                 </>
+              ) : single ? (
+                <>
+                  <Text style={styles.verdictStrong}>{best.platform.name}</Text> で{' '}
+                  <Text style={styles.verdictStrong}>{yen(price)}</Text> で売ると、手取りは{' '}
+                  <Text style={styles.verdictStrong}>{yen(best.profit)}</Text>（利益率{' '}
+                  {percent(best.margin)}）
+                </>
               ) : (
                 <>
                   <Text style={styles.verdictStrong}>{yen(price)}</Text> で売るなら{' '}
@@ -95,11 +115,11 @@ export default function ResultScreen() {
           </View>
         )}
 
-        <Text style={styles.sectionTitle}>プラットフォーム別</Text>
+        <Text style={styles.sectionTitle}>{single ? '内訳' : 'プラットフォーム別'}</Text>
         {rows.length === 0 ? (
           <Card>
             <Text style={styles.hint}>
-              表示するプラットフォームがありません。設定画面で有効にしてください。
+              計算できる販路がありません。設定画面で有効にするか、販路の選択を見直してください。
             </Text>
           </Card>
         ) : (
@@ -177,9 +197,11 @@ function RecapItem({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   content: { padding: spacing.lg, paddingBottom: spacing.xl },
-  recap: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+  recap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
   recapItem: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: '22%',
+    minWidth: 78,
     backgroundColor: colors.card,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,

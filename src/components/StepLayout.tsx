@@ -13,8 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, radius, spacing } from '../theme';
 import { Button } from './ui';
 
-/** 入力フローの総ステップ数（元値 → その他経費 → 資材 → 送料/サイズ → 価格・目標） */
-export const TOTAL_STEPS = 5;
+/** 元値 → その他経費 → 資材 → 販路 → 発送方法 → 価格・目標 */
+export const TOTAL_STEPS = 6;
 
 export function StepLayout({
   step,

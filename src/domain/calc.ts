@@ -101,9 +101,10 @@ export function resolveShipping(platform: Platform, ctx: CalcContext): ResolvedS
   const dedicated = dedicatedMapOf(ctx.materials);
   const shipping = usableShipping(platform, options);
 
+  // 自分で選んだ発送方法は、匿名フィルタやサイズ判定より優先する
   const overrideId = ctx.methodOverrides?.[platform.id];
   if (overrideId) {
-    const fare = shipping[overrideId];
+    const fare = platform.shipping[overrideId];
     const method = METHOD_BY_ID[overrideId];
     if (fare != null && method) {
       const material = dedicated[overrideId];

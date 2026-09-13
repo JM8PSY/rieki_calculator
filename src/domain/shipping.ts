@@ -164,6 +164,20 @@ export function fitsLimit(limit: SizeLimit, d: Dimensions): boolean {
   return true;
 }
 
+/** サイズ条件を「34×24.8cm ・厚さ3cm ・1kg」のような表示用文字列にする */
+export function describeLimit(limit: SizeLimit): string {
+  const parts: string[] = [];
+  if (limit.maxLongest != null) {
+    parts.push(limit.maxSecond != null ? `${limit.maxLongest}×${limit.maxSecond}cm` : `最長${limit.maxLongest}cm`);
+  }
+  if (limit.maxSum3 != null) parts.push(`3辺合計${limit.maxSum3}cm`);
+  if (limit.maxThickness != null) parts.push(`厚さ${limit.maxThickness}cm`);
+  if (limit.maxWeight != null) {
+    parts.push(limit.maxWeight >= 1000 ? `${limit.maxWeight / 1000}kg` : `${limit.maxWeight}g`);
+  }
+  return parts.join(' ・ ');
+}
+
 export type ShippingOption = {
   method: ShippingMethod;
   /** 送料 */

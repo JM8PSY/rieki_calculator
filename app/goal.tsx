@@ -21,7 +21,7 @@ export default function GoalStep() {
 
   return (
     <StepLayout
-      step={5}
+      step={6}
       title={mode === 'target' ? 'いくら利益がほしい？' : 'いくらで売る？'}
       subtitle="目標利益から売値を逆算するか、売値から手取りを出すかを選べます。"
       onNext={calculate}

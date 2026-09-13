@@ -23,7 +23,8 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ title: '転売利益計算' }} />
           <Stack.Screen name="expenses" options={{ title: 'その他経費' }} />
           <Stack.Screen name="materials" options={{ title: '発送資材' }} />
-          <Stack.Screen name="shipping" options={{ title: '発送方法・サイズ' }} />
+          <Stack.Screen name="platform" options={{ title: '販路を選ぶ' }} />
+          <Stack.Screen name="shipping" options={{ title: '発送方法' }} />
           <Stack.Screen name="goal" options={{ title: '価格・目標利益' }} />
           <Stack.Screen name="result" options={{ title: '計算結果' }} />
           <Stack.Screen name="settings" options={{ title: '手数料・送料の設定' }} />
