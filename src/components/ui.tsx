@@ -42,6 +42,9 @@ export function NumberField({
   suffix,
   placeholder,
   flex,
+  autoFocus,
+  onSubmit,
+  big,
 }: {
   label?: string;
   value: number;
@@ -49,6 +52,10 @@ export function NumberField({
   suffix?: string;
   placeholder?: string;
   flex?: number;
+  autoFocus?: boolean;
+  onSubmit?: () => void;
+  /** 入力が主役の画面用に大きく表示する */
+  big?: boolean;
 }) {
   const [text, setText] = useState(String(value));
 
@@ -63,7 +70,7 @@ export function NumberField({
       {label ? <Text style={styles.fieldLabel}>{label}</Text> : null}
       <View style={styles.inputRow}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, big && styles.inputBig]}
           value={text}
           onChangeText={(t) => {
             setText(t);
@@ -74,8 +81,11 @@ export function NumberField({
           placeholder={placeholder}
           placeholderTextColor={colors.sub}
           selectTextOnFocus
+          autoFocus={autoFocus}
+          returnKeyType={onSubmit ? 'done' : undefined}
+          onSubmitEditing={onSubmit}
         />
-        {suffix ? <Text style={styles.suffix}>{suffix}</Text> : null}
+        {suffix ? <Text style={[styles.suffix, big && styles.suffixBig]}>{suffix}</Text> : null}
       </View>
     </View>
   );
@@ -245,7 +255,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
   },
+  inputBig: { paddingVertical: 16, fontSize: 30, fontWeight: '800' },
   suffix: { fontSize: 13, color: colors.sub, marginLeft: spacing.sm },
+  suffixBig: { fontSize: 18, fontWeight: '700' },
   segmented: {
     flexDirection: 'row',
     backgroundColor: colors.bg,

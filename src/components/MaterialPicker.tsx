@@ -12,10 +12,18 @@ type Props = {
   selected: Record<string, number>;
   onChange: (selected: Record<string, number>) => void;
   dims: Dimensions;
+  /** サイズ絞り込みの初期状態（サイズ入力より前の画面では false で全部見せる） */
+  initialFitOnly?: boolean;
 };
 
-export function MaterialPicker({ materials, selected, onChange, dims }: Props) {
-  const [fitOnly, setFitOnly] = useState(true);
+export function MaterialPicker({
+  materials,
+  selected,
+  onChange,
+  dims,
+  initialFitOnly = true,
+}: Props) {
+  const [fitOnly, setFitOnly] = useState(initialFitOnly);
 
   const grouped = useMemo(() => {
     const list = selectableMaterials(materials);
