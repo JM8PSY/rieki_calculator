@@ -18,7 +18,7 @@ export default function PlatformStep() {
 
   return (
     <StepLayout
-      step={4}
+      step={3}
       title="どこで売る？"
       subtitle="販路を決めると、そのアプリで実際に使える発送方法だけが次の画面に出ます。迷っているなら「全社を比較」を選べば、同じ条件で全部の販路を並べて比べられます。"
       onNext={next}

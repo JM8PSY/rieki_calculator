@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { StepLayout } from '../src/components/StepLayout';
 import { Chip, NumberField, Row } from '../src/components/ui';
@@ -7,6 +7,8 @@ import { isAnonymous } from '../src/domain/calc';
 import { yen } from '../src/domain/format';
 import { dedicatedMapOf } from '../src/domain/materials';
 import {
+  CATEGORY_LABEL,
+  CATEGORY_ORDER,
   describeLimit,
   FLAT_RATE_METHODS,
   METHOD_BY_ID,
@@ -20,9 +22,9 @@ import { colors, radius, spacing } from '../src/theme';
 
 export default function ShippingStep() {
   const router = useRouter();
-  const { options, setOptions, platforms, materials } = useSettings();
+  const { options, setOptions, platforms, materials, updateShippingFare } = useSettings();
   const { dims, setDims, platformId, methodOverrides, setFlow } = useFlow();
-  const next = () => router.push('/goal');
+  const next = () => router.push('/materials');
 
   const platform = platforms.find((p) => p.id === platformId);
   const compareAll = platformId === 'all' || !platform;
@@ -38,6 +40,7 @@ export default function ShippingStep() {
       options={options}
       setOptions={setOptions}
       materials={materials}
+      updateShippingFare={updateShippingFare}
       methodOverrides={methodOverrides}
       setOverride={(id) => {
         const nextOverrides = { ...methodOverrides };
@@ -59,6 +62,7 @@ function SinglePlatformMode({
   options,
   setOptions,
   materials,
+  updateShippingFare,
   methodOverrides,
   setOverride,
 }: {
@@ -69,9 +73,11 @@ function SinglePlatformMode({
   options: ReturnType<typeof useSettings>['options'];
   setOptions: ReturnType<typeof useSettings>['setOptions'];
   materials: ReturnType<typeof useSettings>['materials'];
+  updateShippingFare: ReturnType<typeof useSettings>['updateShippingFare'];
   methodOverrides: Record<string, string>;
   setOverride: (methodId?: string) => void;
 }) {
+  const [showSelfShip, setShowSelfShip] = useState(false);
   const dedicated = useMemo(() => dedicatedMapOf(materials), [materials]);
 
   /** 送料の安い順。専用資材が要るものはその分を足した金額で並べる */
@@ -110,9 +116,18 @@ function SinglePlatformMode({
 
   const chosen = selection !== 'auto' ? METHOD_BY_ID[selection] : undefined;
 
+  const grouped = useMemo(
+    () =>
+      CATEGORY_ORDER.map((cat) => ({
+        category: cat,
+        items: methods.filter((m) => m.method.category === cat),
+      })).filter((g) => g.items.length > 0),
+    [methods],
+  );
+
   return (
     <StepLayout
-      step={5}
+      step={4}
       title={`${platform.name}でどう送る？`}
       subtitle="この販路で実際に使える発送方法だけを並べています。方法を選べば送料が確定するので、サイズの入力は要りません。"
       onNext={onNext}
@@ -165,26 +180,59 @@ function SinglePlatformMode({
       )}
 
       <Text style={styles.sectionLabel}>発送方法を直接えらぶ（サイズ入力なし）</Text>
-      {methods.map(({ method, fare, material, total }) => (
-        <MethodRow
-          key={method.id}
-          title={method.name}
-          note={`${method.carrier} ・ ${describeLimit(method.limit)}${
-            material ? `（${material.name}${material.price}円込み）` : ''
-          }`}
-          price={total}
-          subPrice={material ? `送料${fare}円 + 資材${material.price}円` : undefined}
-          badge={
-            platform.anonymousDelivery
-              ? isAnonymous(platform, method.id)
-                ? { label: '匿名配送', tone: 'ok' as const }
-                : { label: '匿名×', tone: 'warn' as const }
-              : undefined
-          }
-          active={selection === method.id}
-          onPress={() => select(method.id)}
-        />
-      ))}
+      {grouped.map((group) => {
+        const collapsed = group.category === 'self' && !showSelfShip;
+        return (
+          <View key={group.category}>
+            <Pressable
+              style={styles.groupHead}
+              onPress={() => group.category === 'self' && setShowSelfShip((v) => !v)}
+              disabled={group.category !== 'self'}
+            >
+              <Text style={styles.groupTitle}>{CATEGORY_LABEL[group.category]}</Text>
+              {group.category === 'self' && (
+                <Text style={styles.groupToggle}>
+                  {collapsed ? `${group.items.length}件を表示` : '隠す'}
+                </Text>
+              )}
+            </Pressable>
+
+            {!collapsed &&
+              group.items.map(({ method, fare, material, total }) => (
+                <View key={method.id}>
+                  <MethodRow
+                    title={method.name}
+                    note={`${method.carrier} ・ ${describeLimit(method.limit)}${
+                      method.note ? ` ・ ${method.note}` : ''
+                    }`}
+                    price={method.manualPrice ? undefined : total}
+                    priceLabel={method.manualPrice ? '料金を入力' : undefined}
+                    subPrice={material ? `送料${fare}円 + 資材${material.price}円` : undefined}
+                    badge={
+                      platform.anonymousDelivery
+                        ? isAnonymous(platform, method.id)
+                          ? { label: '匿名配送', tone: 'ok' as const }
+                          : { label: '匿名×', tone: 'warn' as const }
+                        : undefined
+                    }
+                    active={selection === method.id}
+                    onPress={() => select(method.id)}
+                  />
+                  {method.manualPrice && selection === method.id && (
+                    <View style={styles.manualBox}>
+                      <NumberField
+                        label={`${method.name}の実際の送料`}
+                        value={fare}
+                        onChange={(v) => updateShippingFare(platform.id, method.id, v)}
+                        suffix="円"
+                      />
+                    </View>
+                  )}
+                </View>
+              ))}
+          </View>
+        );
+      })}
 
       <Text style={styles.sectionLabel}>そのほか</Text>
       <MethodRow
@@ -220,7 +268,7 @@ function CompareMode({ onNext }: { onNext: () => void }) {
 
   return (
     <StepLayout
-      step={5}
+      step={4}
       title="送料はどうする？"
       subtitle="全社を比較するので、各アプリで使える最安の方法をサイズから自動で選びます。レターパックなど送料が決まっている便を使うならサイズ入力は要りません。"
       onNext={onNext}
@@ -344,6 +392,7 @@ function MethodRow({
   title,
   note,
   price,
+  priceLabel,
   subPrice,
   badge,
   active,
@@ -352,6 +401,7 @@ function MethodRow({
   title: string;
   note: string;
   price?: number;
+  priceLabel?: string;
   subPrice?: string;
   badge?: { label: string; tone: 'ok' | 'warn' };
   active: boolean;
@@ -373,9 +423,11 @@ function MethodRow({
         </View>
         <Text style={styles.rowNote}>{note}</Text>
       </View>
-      {price != null && (
+      {(price != null || priceLabel) && (
         <View style={styles.priceBox}>
-          <Text style={[styles.price, active && styles.priceActive]}>{yen(price)}</Text>
+          <Text style={[styles.price, active && styles.priceActive, priceLabel && styles.priceHint]}>
+            {priceLabel ?? yen(price ?? 0)}
+          </Text>
           {subPrice ? <Text style={styles.subPrice}>{subPrice}</Text> : null}
         </View>
       )}
@@ -497,6 +549,17 @@ const styles = StyleSheet.create({
   priceBox: { alignItems: 'flex-end' },
   price: { fontSize: 15, fontWeight: '800', color: colors.text },
   priceActive: { color: colors.accent },
+  priceHint: { fontSize: 11, fontWeight: '700', color: colors.warn },
+  groupHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  groupTitle: { fontSize: 11, fontWeight: '700', color: colors.sub, letterSpacing: 0.3 },
+  groupToggle: { fontSize: 11, fontWeight: '700', color: colors.accent },
+  manualBox: { marginBottom: spacing.sm, paddingHorizontal: spacing.md },
   subPrice: { fontSize: 9, color: colors.sub, marginTop: 1 },
   segmented: { flexDirection: 'row', backgroundColor: colors.bg, borderRadius: radius.md, padding: 3, gap: 3 },
   segment: { flex: 1, paddingVertical: 9, borderRadius: radius.sm, alignItems: 'center' },

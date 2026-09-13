@@ -15,11 +15,26 @@ export type SizeLimit = {
   maxWeight?: number;
 };
 
+/** 発送方法の区分 */
+export type MethodCategory =
+  /** プラットフォームの提携配送（匿名・追跡つき） */
+  | 'partner'
+  /** 大型商品むけの連携配送（料金がサイズ・地域で変動する） */
+  | 'large'
+  /** 提携外の自己発送（普通郵便・レターパック・一般宅配便など） */
+  | 'self';
+
 export type ShippingMethod = {
   id: string;
   name: string;
   carrier: string;
+  category: MethodCategory;
   limit: SizeLimit;
+  /**
+   * 料金が一律に決まらない方法（大型連携配送など）。
+   * 自動選択の候補には入れず、選んだときに実際の料金を入力してもらう。
+   */
+  manualPrice?: boolean;
   /**
    * 自己発送の汎用便（レターパック・クリックポストなど）。
    * プラットフォームの提携配送ではないので匿名配送にならない。

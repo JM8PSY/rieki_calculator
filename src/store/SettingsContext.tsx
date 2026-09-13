@@ -4,7 +4,7 @@ import { DEFAULT_MATERIALS } from '../domain/materials';
 import { DEFAULT_PLATFORMS } from '../domain/platforms';
 import type { Options, PackagingMaterial, Platform } from '../domain/types';
 
-const STORAGE_KEY = 'rieki-calculator/settings/v3';
+const STORAGE_KEY = 'rieki-calculator/settings/v4';
 
 export const DEFAULT_OPTIONS: Options = {
   shippingMode: 'auto',

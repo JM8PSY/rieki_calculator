@@ -12,7 +12,7 @@ const PRESETS = [0, 100, 300, 500];
 export default function ExpensesStep() {
   const router = useRouter();
   const { costs, setCosts } = useFlow();
-  const next = () => router.push('/materials');
+  const next = () => router.push('/platform');
 
   return (
     <StepLayout
