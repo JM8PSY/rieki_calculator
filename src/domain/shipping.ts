@@ -9,7 +9,8 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
     id: 'nekoposu',
     name: 'ネコポス',
     carrier: 'ヤマト運輸',
-    limit: { maxLongest: 31.2, maxThickness: 3, maxWeight: 1000 },
+    limit: { maxLongest: 31.2, maxSecond: 22.8, maxThickness: 3, maxWeight: 1000 },
+    tracking: true,
     note: 'A4サイズ・ポスト投函',
   },
   {
@@ -17,20 +18,23 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
     name: 'ゆうパケット',
     carrier: '日本郵便',
     limit: { maxLongest: 34, maxSum3: 60, maxThickness: 3, maxWeight: 1000 },
+    tracking: true,
     note: 'ポスト投函',
   },
   {
     id: 'yupacket_post_mini',
     name: 'ゆうパケットポストmini',
     carrier: '日本郵便',
-    limit: { maxLongest: 21.6, maxThickness: 3, maxWeight: 2000 },
-    note: '郵便局で買う専用封筒が別途必要',
+    limit: { maxLongest: 21.6, maxSecond: 16.8, maxThickness: 3, maxWeight: 2000 },
+    tracking: true,
+    note: 'A5相当・郵便局で買う専用封筒が別途必要',
   },
   {
     id: 'yupacket_post',
     name: 'ゆうパケットポスト',
     carrier: '日本郵便',
     limit: { maxSum3: 60, maxLongest: 34, maxThickness: 3, maxWeight: 2000 },
+    tracking: true,
     note: '郵便局で買う発送用シールが別途必要',
   },
   {
@@ -38,6 +42,7 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
     name: '宅急便コンパクト',
     carrier: 'ヤマト運輸',
     limit: { maxLongest: 25, maxSum3: 45, maxThickness: 5, maxWeight: 5000 },
+    tracking: true,
     note: 'ヤマト直営店で買う専用BOXが別途必要',
   },
   {
@@ -45,7 +50,22 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
     name: 'ゆうパケットプラス',
     carrier: '日本郵便',
     limit: { maxLongest: 24, maxSum3: 46, maxThickness: 7, maxWeight: 2000 },
+    tracking: true,
     note: '郵便局で買う専用箱が別途必要',
+  },
+  {
+    id: 'yupack60',
+    name: 'ゆうパック 60サイズ',
+    carrier: '日本郵便',
+    limit: { maxSum3: 60, maxWeight: 25000 },
+    tracking: true,
+  },
+  {
+    id: 'yupack80',
+    name: 'ゆうパック 80サイズ',
+    carrier: '日本郵便',
+    limit: { maxSum3: 80, maxWeight: 25000 },
+    tracking: true,
   },
   { id: 'size60', name: '60サイズ', carrier: '宅配便', limit: { maxSum3: 60, maxWeight: 2000 } },
   { id: 'size80', name: '80サイズ', carrier: '宅配便', limit: { maxSum3: 80, maxWeight: 5000 } },
@@ -55,7 +75,52 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
   { id: 'size160', name: '160サイズ', carrier: '宅配便', limit: { maxSum3: 160, maxWeight: 25000 } },
   { id: 'size180', name: '180サイズ', carrier: '宅配便', limit: { maxSum3: 180, maxWeight: 30000 } },
   { id: 'size200', name: '200サイズ', carrier: '宅配便', limit: { maxSum3: 200, maxWeight: 30000 } },
+
+  // ── 全国一律の定額便（自己発送・匿名配送にはならない） ──────────
+  {
+    id: 'letterpack_light',
+    name: 'レターパックライト',
+    carrier: '日本郵便',
+    limit: { maxLongest: 34, maxSecond: 24.8, maxThickness: 3, maxWeight: 4000 },
+    selfShip: true,
+    flatRate: true,
+    tracking: true,
+    note: '専用封筒430円（送料込み）・ポスト投函・郵便受けに配達',
+  },
+  {
+    id: 'letterpack_plus',
+    name: 'レターパックプラス',
+    carrier: '日本郵便',
+    limit: { maxLongest: 34, maxSecond: 24.8, maxWeight: 4000 },
+    selfShip: true,
+    flatRate: true,
+    tracking: true,
+    note: '専用封筒600円（送料込み）・厚さ制限なし・対面配達で受領印あり',
+  },
+  {
+    id: 'smart_letter',
+    name: 'スマートレター',
+    carrier: '日本郵便',
+    limit: { maxLongest: 25, maxSecond: 17, maxThickness: 2, maxWeight: 1000 },
+    selfShip: true,
+    flatRate: true,
+    tracking: false,
+    note: '専用封筒210円（送料込み）・A5サイズ・追跡なし',
+  },
+  {
+    id: 'clickpost',
+    name: 'クリックポスト',
+    carrier: '日本郵便',
+    limit: { maxLongest: 34, maxSecond: 25, maxThickness: 3, maxWeight: 1000 },
+    selfShip: true,
+    flatRate: true,
+    tracking: true,
+    note: 'ネット決済＋自宅でラベル印刷が必要・封筒は自前・長さ14cm 幅9cm 以上',
+  },
 ];
+
+/** 全国一律の定額便（どのプラットフォームでも同じ料金で使える） */
+export const FLAT_RATE_METHODS = SHIPPING_METHODS.filter((m) => m.flatRate);
 
 export const METHOD_BY_ID: Record<string, ShippingMethod> = Object.fromEntries(
   SHIPPING_METHODS.map((m) => [m.id, m]),
@@ -84,8 +149,15 @@ export function thickness(d: Dimensions): number {
   return Math.min(d.length, d.width, d.height);
 }
 
+/** 2番目に長い辺（＝封筒の短辺側に収まるかの判定に使う） */
+export function second(d: Dimensions): number {
+  const sorted = [d.length, d.width, d.height].sort((a, b) => b - a);
+  return sorted[1];
+}
+
 export function fitsLimit(limit: SizeLimit, d: Dimensions): boolean {
   if (limit.maxLongest != null && longest(d) > limit.maxLongest) return false;
+  if (limit.maxSecond != null && second(d) > limit.maxSecond) return false;
   if (limit.maxSum3 != null && sum3(d) > limit.maxSum3) return false;
   if (limit.maxThickness != null && thickness(d) > limit.maxThickness) return false;
   if (limit.maxWeight != null && d.weight > limit.maxWeight) return false;

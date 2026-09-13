@@ -4,11 +4,13 @@ import { DEFAULT_MATERIALS } from '../domain/materials';
 import { DEFAULT_PLATFORMS } from '../domain/platforms';
 import type { Options, PackagingMaterial, Platform } from '../domain/types';
 
-const STORAGE_KEY = 'rieki-calculator/settings/v2';
+const STORAGE_KEY = 'rieki-calculator/settings/v3';
 
 export const DEFAULT_OPTIONS: Options = {
   shippingMode: 'auto',
   manualShipping: 0,
+  flatMethodId: 'letterpack_light',
+  anonymousOnly: true,
   includePayoutFee: false,
   priceStep: 10,
 };

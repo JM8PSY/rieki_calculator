@@ -38,25 +38,72 @@ type ResolvedShipping = {
   materialCost: number;
   materialName?: string;
   label: string;
+  /** 匿名配送になるか */
+  anonymous: boolean;
   ok: boolean;
   reason?: string;
 };
+
+/** その発送方法で匿名配送になるか（提携配送のみ匿名。自己発送の汎用便は不可） */
+export function isAnonymous(platform: Platform, methodId: string): boolean {
+  return platform.anonymousDelivery && !METHOD_BY_ID[methodId]?.selfShip;
+}
+
+/**
+ * そのプラットフォームで実際に選べる発送方法。
+ * 匿名配送のみに絞る設定のときは、自己発送の汎用便（レターパック等）を候補から外す。
+ */
+export function usableShipping(platform: Platform, options: Options): Record<string, number> {
+  if (!options.anonymousOnly || !platform.anonymousDelivery) return platform.shipping;
+  return Object.fromEntries(
+    Object.entries(platform.shipping).filter(([id]) => !METHOD_BY_ID[id]?.selfShip),
+  );
+}
 
 /** そのプラットフォームで実際に負担する送料（専用資材込み）を決める */
 export function resolveShipping(platform: Platform, ctx: CalcContext): ResolvedShipping {
   const { options } = ctx;
   if (options.shippingMode === 'buyer') {
-    return { amount: 0, materialCost: 0, label: '送料は購入者負担', ok: true };
+    return { amount: 0, materialCost: 0, label: '送料は購入者負担', anonymous: false, ok: true };
   }
   if (options.shippingMode === 'manual') {
-    return { amount: options.manualShipping, materialCost: 0, label: '送料を手入力', ok: true };
+    return {
+      amount: options.manualShipping,
+      materialCost: 0,
+      label: '送料を手入力',
+      anonymous: false,
+      ok: true,
+    };
+  }
+  if (options.shippingMode === 'flat') {
+    // 定額便はサイズ判定をしない（送料がすでに確定しているため）
+    const method = METHOD_BY_ID[options.flatMethodId];
+    const fare = platform.shipping[options.flatMethodId];
+    if (!method || fare == null) {
+      return {
+        amount: 0,
+        materialCost: 0,
+        label: '定額便なし',
+        anonymous: false,
+        ok: false,
+        reason: 'この販路では選んだ定額便が使えません',
+      };
+    }
+    return {
+      amount: fare,
+      materialCost: 0,
+      label: `${method.name} ${fare}円（全国一律）`,
+      anonymous: isAnonymous(platform, options.flatMethodId),
+      ok: true,
+    };
   }
 
   const dedicated = dedicatedMapOf(ctx.materials);
+  const shipping = usableShipping(platform, options);
 
   const overrideId = ctx.methodOverrides?.[platform.id];
   if (overrideId) {
-    const fare = platform.shipping[overrideId];
+    const fare = shipping[overrideId];
     const method = METHOD_BY_ID[overrideId];
     if (fare != null && method) {
       const material = dedicated[overrideId];
@@ -71,17 +118,19 @@ export function resolveShipping(platform: Platform, ctx: CalcContext): ResolvedS
         materialCost: material?.price ?? 0,
         materialName: material?.name,
         label: labelFor(option),
+        anonymous: isAnonymous(platform, overrideId),
         ok: true,
       };
     }
   }
 
-  const best = cheapestShipping(platform.shipping, ctx.dims, dedicated);
+  const best = cheapestShipping(shipping, ctx.dims, dedicated);
   if (!best) {
     return {
       amount: 0,
       materialCost: 0,
       label: '発送方法なし',
+      anonymous: false,
       ok: false,
       reason: 'このサイズ・重さで使える発送方法がありません',
     };
@@ -91,6 +140,7 @@ export function resolveShipping(platform: Platform, ctx: CalcContext): ResolvedS
     materialCost: best.material?.price ?? 0,
     materialName: best.material?.name,
     label: labelFor(best),
+    anonymous: isAnonymous(platform, best.method.id),
     ok: true,
   };
 }
@@ -105,8 +155,10 @@ export function availableShipping(
   platform: Platform,
   dims: Dimensions,
   materials: PackagingMaterial[],
+  options?: Options,
 ): ShippingOption[] {
-  return shippingOptionsFor(platform.shipping, dims, dedicatedMapOf(materials));
+  const shipping = options ? usableShipping(platform, options) : platform.shipping;
+  return shippingOptionsFor(shipping, dims, dedicatedMapOf(materials));
 }
 
 export function feeFor(platform: Platform, price: number): number {
@@ -146,6 +198,7 @@ export function calcProfit(platform: Platform, price: number, ctx: CalcContext):
     shippingLabel: ship.label,
     dedicatedMaterialCost: ship.materialCost,
     dedicatedMaterialName: ship.materialName,
+    anonymous: ship.anonymous,
     materialsCost,
     cost,
     payoutFee,

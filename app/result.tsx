@@ -7,6 +7,7 @@ import { Card } from '../src/components/ui';
 import { availableShipping, calcAll, calcPriceForTarget } from '../src/domain/calc';
 import { percent, yen } from '../src/domain/format';
 import { materialsTotal } from '../src/domain/materials';
+import { METHOD_BY_ID } from '../src/domain/shipping';
 import { useFlow } from '../src/store/FlowContext';
 import { useSettings } from '../src/store/SettingsContext';
 import { colors, radius, spacing } from '../src/theme';
@@ -64,9 +65,11 @@ export default function ResultScreen() {
             value={
               options.shippingMode === 'auto'
                 ? `自動（${dims.length + dims.width + dims.height}cm）`
-                : options.shippingMode === 'manual'
-                  ? yen(options.manualShipping)
-                  : '購入者負担'
+                : options.shippingMode === 'flat'
+                  ? (METHOD_BY_ID[options.flatMethodId]?.name ?? '定額便')
+                  : options.shippingMode === 'manual'
+                    ? yen(options.manualShipping)
+                    : '購入者負担'
             }
             onPress={() => router.dismissTo('/shipping')}
           />
@@ -110,7 +113,7 @@ export default function ResultScreen() {
               onToggle={() =>
                 setExpanded((prev) => ({ ...prev, [r.platform.id]: !prev[r.platform.id] }))
               }
-              shippingOptions={availableShipping(r.platform, dims, materials)}
+              shippingOptions={availableShipping(r.platform, dims, materials, options)}
               selectedMethodId={methodOverrides[r.platform.id]}
               onSelectMethod={(methodId) => {
                 const next = { ...methodOverrides };

@@ -77,6 +77,18 @@ export function ResultCard({
               ※ 送料には {b.dedicatedMaterialName}（{yen(b.dedicatedMaterialCost)}）を含みます
             </Text>
           )}
+          {b.platform.anonymousDelivery && (
+            <View style={styles.tagRow}>
+              <View style={[styles.tag, b.anonymous ? styles.tagOk : styles.tagWarn]}>
+                <Text style={[styles.tagText, b.anonymous ? styles.tagTextOk : styles.tagTextWarn]}>
+                  {b.anonymous ? '匿名配送' : '匿名配送にならない'}
+                </Text>
+              </View>
+              {!b.anonymous && (
+                <Text style={styles.subNote}>自己発送のため住所・氏名が相手に伝わります</Text>
+              )}
+            </View>
+          )}
           {b.materialsCost > 0 && (
             <KeyValue label="梱包資材" value={`- ${yen(b.materialsCost)}`} tone="sub" />
           )}
@@ -143,6 +155,13 @@ const styles = StyleSheet.create({
   ng: { fontSize: 20, color: colors.sub },
   detail: { marginTop: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: spacing.md },
   subNote: { fontSize: 11, color: colors.sub, marginTop: 2, marginBottom: 2, lineHeight: 16 },
+  tagRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginVertical: 4, flexWrap: 'wrap' },
+  tag: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  tagOk: { backgroundColor: '#e6f4ea' },
+  tagWarn: { backgroundColor: colors.warnSoft },
+  tagText: { fontSize: 10, fontWeight: '700' },
+  tagTextOk: { color: colors.profit },
+  tagTextWarn: { color: colors.warn },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: spacing.sm },
   picker: { marginTop: spacing.md },
   pickerLabel: { fontSize: 12, color: colors.sub, marginBottom: spacing.sm },
