@@ -37,6 +37,13 @@
           "backgroundColor": "#FFFFFF"
         }
       ]
-    ]
+    ],
+    "owner": "jm8psy",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5d618ebc-1c52-49bd-b746-27d426f7cd24"
+      }
+    }
   }
 }
