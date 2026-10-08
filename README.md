@@ -64,7 +64,8 @@ Expo Go を使う日は `npx expo start --go` を明示します。
 | 項目 | 値 |
 | --- | --- |
 | アプリ名 | 転売利益計算 |
-| Bundle ID / Package | `com.jm8psy.riekicalculator` |
+| iOS Bundle ID | `com.jm8psy.riekicalculator` |
+| Android Package | `com.hogehoge.tenbai_rieki_calc` |
 | アイコン | `assets/icon.png`（青地に白の円マーク） |
 | Android アダプティブアイコン | `assets/adaptive-icon.png` + 背景 `#2563EB` |
 | スプラッシュ | `assets/splash-icon.png`（白背景） |

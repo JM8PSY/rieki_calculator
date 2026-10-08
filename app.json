@@ -15,7 +15,7 @@
       }
     },
     "android": {
-      "package": "com.jm8psy.riekicalculator",
+      "package": "com.hogehoge.tenbai_rieki_calc",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#2563EB"
