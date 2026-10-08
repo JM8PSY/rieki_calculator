@@ -42,6 +42,11 @@ export type ShippingMethod = {
   selfShip?: boolean;
   /** 全国一律の定額便。サイズを測らなくても送料が確定する */
   flatRate?: boolean;
+  /**
+   * 宅急便・ゆうパックのサイズ区分（60/80/…/200）。
+   * 付いているものは「サイズ別便」として小型の定額便とは分けて並べる。
+   */
+  sizeBand?: number;
   /** 追跡サービスの有無 */
   tracking?: boolean;
   note?: string;

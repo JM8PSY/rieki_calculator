@@ -12,15 +12,16 @@
     "build:ios": "eas build --platform ios --profile preview",
     "build:store:android": "eas build --platform android --profile production",
     "build:store:ios": "eas build --platform ios --profile production",
-    "prebuild": "expo prebuild --clean"
+    "prebuild": "expo prebuild --clean",
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "private": true,
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
-    "expo": "^57.0.22",
+    "expo": "~57.0.24",
     "expo-constants": "~57.0.18",
     "expo-linking": "~57.0.10",
-    "expo-router": "~57.0.21",
+    "expo-router": "~57.0.22",
     "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.4",
@@ -32,7 +33,9 @@
     "react-native-web": "^0.21.2"
   },
   "devDependencies": {
+    "@types/node": "^26.6.4",
     "@types/react": "~19.2.4",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3"
   }
 }

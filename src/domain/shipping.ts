@@ -46,13 +46,13 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
     tracking: true,
     note: '専用箱が別途必要',
   },
-  { id: 'yupack60', name: 'ゆうパック 60サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 60, maxWeight: 25000 }, tracking: true },
-  { id: 'yupack80', name: 'ゆうパック 80サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 80, maxWeight: 25000 }, tracking: true },
-  { id: 'yupack100', name: 'ゆうパック 100サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 100, maxWeight: 25000 }, tracking: true },
-  { id: 'yupack120', name: 'ゆうパック 120サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 120, maxWeight: 25000 }, tracking: true },
-  { id: 'yupack140', name: 'ゆうパック 140サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 140, maxWeight: 25000 }, tracking: true },
-  { id: 'yupack160', name: 'ゆうパック 160サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 160, maxWeight: 25000 }, tracking: true },
-  { id: 'yupack170', name: 'ゆうパック 170サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 170, maxWeight: 25000 }, tracking: true },
+  { id: 'yupack60', name: 'ゆうパック 60サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 60, maxWeight: 25000 }, tracking: true, sizeBand: 60 },
+  { id: 'yupack80', name: 'ゆうパック 80サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 80, maxWeight: 25000 }, tracking: true, sizeBand: 80 },
+  { id: 'yupack100', name: 'ゆうパック 100サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 100, maxWeight: 25000 }, tracking: true, sizeBand: 100 },
+  { id: 'yupack120', name: 'ゆうパック 120サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 120, maxWeight: 25000 }, tracking: true, sizeBand: 120 },
+  { id: 'yupack140', name: 'ゆうパック 140サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 140, maxWeight: 25000 }, tracking: true, sizeBand: 140 },
+  { id: 'yupack160', name: 'ゆうパック 160サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 160, maxWeight: 25000 }, tracking: true, sizeBand: 160 },
+  { id: 'yupack170', name: 'ゆうパック 170サイズ', carrier: '日本郵便', category: 'partner', limit: { maxSum3: 170, maxWeight: 25000 }, tracking: true, sizeBand: 170 },
 
   // ══ 提携配送：ヤマト運輸 ═══════════════════════════════════════
   {
@@ -73,14 +73,14 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
     tracking: true,
     note: '専用BOXが別途必要',
   },
-  { id: 'takkyubin60', name: '宅急便 60サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 60, maxWeight: 2000 }, tracking: true },
-  { id: 'takkyubin80', name: '宅急便 80サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 80, maxWeight: 5000 }, tracking: true },
-  { id: 'takkyubin100', name: '宅急便 100サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 100, maxWeight: 10000 }, tracking: true },
-  { id: 'takkyubin120', name: '宅急便 120サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 120, maxWeight: 15000 }, tracking: true },
-  { id: 'takkyubin140', name: '宅急便 140サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 140, maxWeight: 20000 }, tracking: true },
-  { id: 'takkyubin160', name: '宅急便 160サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 160, maxWeight: 25000 }, tracking: true },
-  { id: 'takkyubin180', name: '宅急便 180サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 180, maxWeight: 30000 }, tracking: true },
-  { id: 'takkyubin200', name: '宅急便 200サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 200, maxWeight: 30000 }, tracking: true },
+  { id: 'takkyubin60', name: '宅急便 60サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 60, maxWeight: 2000 }, tracking: true, sizeBand: 60 },
+  { id: 'takkyubin80', name: '宅急便 80サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 80, maxWeight: 5000 }, tracking: true, sizeBand: 80 },
+  { id: 'takkyubin100', name: '宅急便 100サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 100, maxWeight: 10000 }, tracking: true, sizeBand: 100 },
+  { id: 'takkyubin120', name: '宅急便 120サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 120, maxWeight: 15000 }, tracking: true, sizeBand: 120 },
+  { id: 'takkyubin140', name: '宅急便 140サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 140, maxWeight: 20000 }, tracking: true, sizeBand: 140 },
+  { id: 'takkyubin160', name: '宅急便 160サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 160, maxWeight: 25000 }, tracking: true, sizeBand: 160 },
+  { id: 'takkyubin180', name: '宅急便 180サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 180, maxWeight: 30000 }, tracking: true, sizeBand: 180 },
+  { id: 'takkyubin200', name: '宅急便 200サイズ', carrier: 'ヤマト運輸', category: 'partner', limit: { maxSum3: 200, maxWeight: 30000 }, tracking: true, sizeBand: 200 },
 
   // ══ 大型連携配送（料金はサイズ・地域で変動するため要入力） ═══════
   {
@@ -218,6 +218,27 @@ export const CATEGORY_LABEL = {
 
 export const CATEGORY_ORDER = ['partner', 'large', 'self'] as const;
 
+/**
+ * 発送方法一覧の表示グループ。
+ * partner（定額の小型便）を最初に見せ、サイズで料金が変わる宅急便・ゆうパックは
+ * partner_sized として一段下にまとめる。
+ */
+export type ListGroup = 'partner' | 'partner_sized' | 'large' | 'self';
+
+export const LIST_GROUP_ORDER: readonly ListGroup[] = ['partner', 'partner_sized', 'large', 'self'];
+
+export const LIST_GROUP_LABEL: Record<ListGroup, string> = {
+  partner: '定額の小型便（匿名・追跡つき）',
+  partner_sized: 'サイズ別の宅急便・ゆうパック（60〜200サイズ）',
+  large: CATEGORY_LABEL.large,
+  self: CATEGORY_LABEL.self,
+};
+
+export function listGroupOf(method: ShippingMethod): ListGroup {
+  if (method.category === 'partner' && method.sizeBand != null) return 'partner_sized';
+  return method.category;
+}
+
 /** 全国一律の定額便 */
 export const FLAT_RATE_METHODS = SHIPPING_METHODS.filter((m) => m.flatRate);
 
@@ -305,6 +326,25 @@ export function shippingOptionsFor(
     options.push({ method, fare, material, total: fare + (material?.price ?? 0) });
   }
   return options.sort((a, b) => a.total - b.total);
+}
+
+/**
+ * 一覧表示用にグループ分けする。入力は shippingOptionsFor と同じ形。
+ * サイズ別便はサイズ順（同サイズなら安い順）、それ以外は安い順。空のグループは返さない。
+ */
+export function groupShippingOptions(
+  options: ShippingOption[],
+): { group: ListGroup; items: ShippingOption[] }[] {
+  return LIST_GROUP_ORDER.map((group) => {
+    const items = options
+      .filter((o) => listGroupOf(o.method) === group)
+      .sort((a, b) =>
+        group === 'partner_sized'
+          ? (a.method.sizeBand ?? 0) - (b.method.sizeBand ?? 0) || a.total - b.total
+          : a.total - b.total,
+      );
+    return { group, items };
+  }).filter((g) => g.items.length > 0);
 }
 
 /** 最安の発送方法（なければ null） */

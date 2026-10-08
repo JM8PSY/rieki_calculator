@@ -7,13 +7,14 @@ import { isAnonymous } from '../src/domain/calc';
 import { yen } from '../src/domain/format';
 import { dedicatedMapOf } from '../src/domain/materials';
 import {
-  CATEGORY_LABEL,
-  CATEGORY_ORDER,
   describeLimit,
   FLAT_RATE_METHODS,
+  groupShippingOptions,
+  LIST_GROUP_LABEL,
   METHOD_BY_ID,
   SIZE_PRESETS,
   sum3,
+  type ListGroup,
 } from '../src/domain/shipping';
 import type { Platform, ShippingMode } from '../src/domain/types';
 import { useFlow } from '../src/store/FlowContext';
@@ -54,6 +55,9 @@ export default function ShippingStep() {
 
 /* ───────────────────────── 販路を1つに決めた場合 ───────────────────────── */
 
+/** 一覧で最初は折りたたんでおくグループ。小型の定額便を先に見せるため */
+const COLLAPSED_GROUPS: readonly ListGroup[] = ['partner_sized', 'self'];
+
 function SinglePlatformMode({
   platform,
   onNext,
@@ -77,7 +81,8 @@ function SinglePlatformMode({
   methodOverrides: Record<string, string>;
   setOverride: (methodId?: string) => void;
 }) {
-  const [showSelfShip, setShowSelfShip] = useState(false);
+  /** 初期状態で折りたたむグループ。タップで開閉する */
+  const [expanded, setExpanded] = useState<Partial<Record<ListGroup, boolean>>>({});
   const dedicated = useMemo(() => dedicatedMapOf(materials), [materials]);
 
   /** 送料の安い順。専用資材が要るものはその分を足した金額で並べる */
@@ -116,14 +121,7 @@ function SinglePlatformMode({
 
   const chosen = selection !== 'auto' ? METHOD_BY_ID[selection] : undefined;
 
-  const grouped = useMemo(
-    () =>
-      CATEGORY_ORDER.map((cat) => ({
-        category: cat,
-        items: methods.filter((m) => m.method.category === cat),
-      })).filter((g) => g.items.length > 0),
-    [methods],
-  );
+  const grouped = useMemo(() => groupShippingOptions(methods), [methods]);
 
   return (
     <StepLayout
@@ -181,16 +179,20 @@ function SinglePlatformMode({
 
       <Text style={styles.sectionLabel}>発送方法を直接えらぶ（サイズ入力なし）</Text>
       {grouped.map((group) => {
-        const collapsed = group.category === 'self' && !showSelfShip;
+        const collapsible = COLLAPSED_GROUPS.includes(group.group);
+        const holdsSelection = group.items.some((m) => m.method.id === selection);
+        const collapsed = collapsible && !expanded[group.group] && !holdsSelection;
         return (
-          <View key={group.category}>
+          <View key={group.group}>
             <Pressable
               style={styles.groupHead}
-              onPress={() => group.category === 'self' && setShowSelfShip((v) => !v)}
-              disabled={group.category !== 'self'}
+              onPress={() =>
+                collapsible && setExpanded((e) => ({ ...e, [group.group]: collapsed }))
+              }
+              disabled={!collapsible || holdsSelection}
             >
-              <Text style={styles.groupTitle}>{CATEGORY_LABEL[group.category]}</Text>
-              {group.category === 'self' && (
+              <Text style={styles.groupTitle}>{LIST_GROUP_LABEL[group.group]}</Text>
+              {collapsible && !holdsSelection && (
                 <Text style={styles.groupToggle}>
                   {collapsed ? `${group.items.length}件を表示` : '隠す'}
                 </Text>
